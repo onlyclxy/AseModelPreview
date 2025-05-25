@@ -1,0 +1,9 @@
+Windows Registry Editor Version 5.00
+
+; 1) 告诉 Explorer：CLSID=5F1B8D18-9E3A-4F2F-8AFE-4FCFE7D7A686 的扩展是“被认可”的 Shell Extension
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Approved]
+"{5F1B8D18-9E3A-4F2F-8AFE-4FCFE7D7A686}"="Assimp Thumbnail Provider"
+
+; 2) 指定 .ase 后缀要使用 IThumbnailProvider 接口（GUID=E357FCCD-A995-4576-B01F-234630154E96）
+[HKEY_CLASSES_ROOT\.ase\shellex\{E357FCCD-A995-4576-B01F-234630154E96}]
+@="{5F1B8D18-9E3A-4F2F-8AFE-4FCFE7D7A686}"

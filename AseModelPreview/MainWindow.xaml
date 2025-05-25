@@ -1,0 +1,33 @@
+﻿<Window x:Class="AseTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:helix="clr-namespace:HelixToolkit.Wpf;assembly=HelixToolkit.Wpf"
+        mc:Ignorable="d"
+        Title="3D模型材质预览器" Height="600" Width="800">
+    <DockPanel>
+        <!-- Top control panel -->
+        <Border DockPanel.Dock="Top" Background="#F0F0F0" Padding="5">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="加载模型" Click="OnLoadModelClick" Padding="8,3" Margin="0,0,5,0"/>
+                <Button Content="生成材质预览(孤立)" Click="OnGenerateMaterialPreviewClick" Padding="8,3" Margin="0,0,5,0"/>
+                <Button Content="生成材质预览(半透明)" Click="OnGenerateTransparentPreviewClick" Padding="8,3" Margin="0,0,5,0"/>
+
+                <!-- Alpha editor -->
+                <TextBlock Text="透明度 (0–255):" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <TextBox x:Name="txtAlpha" Width="50" Text="64" VerticalAlignment="Center" Padding="3,1" />
+            </StackPanel>
+        </Border>
+
+        <!-- Status bar at the bottom -->
+        <StatusBar DockPanel.Dock="Bottom" Height="23">
+            <TextBlock x:Name="txtPath" TextTrimming="CharacterEllipsis"/>
+        </StatusBar>
+
+        <!-- 3D Viewport fills the remaining space -->
+        <helix:HelixViewport3D x:Name="viewPort" ShowViewCube="True" Background="White">
+            <helix:DefaultLights />
+        </helix:HelixViewport3D>
+    </DockPanel>
+</Window>

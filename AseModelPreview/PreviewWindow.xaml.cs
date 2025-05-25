@@ -1,0 +1,171 @@
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Windows;
+using System.Windows.Media.Imaging;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+
+namespace AseTest
+{
+    /// <summary>
+    /// PreviewWindow.xaml 的交互逻辑
+    /// </summary>
+    public partial class PreviewWindow : Window
+    {
+        private string _imagePath;
+        private Point? lastDragPosition;
+        private double currentScale = 1.0;
+        private const double ScaleRate = 1.1;
+        private const double MinScale = 0.1;
+        private const double MaxScale = 10.0;
+        private readonly ScaleTransform scaleTransform = new ScaleTransform(1, 1);
+        private bool isDragging = false;
+
+        public PreviewWindow(BitmapSource previewBitmap, string imagePath)
+        {
+            InitializeComponent();
+            previewImage.Source = previewBitmap;
+            _imagePath = imagePath;
+            txtImagePath.Text = $"已保存至: {_imagePath}";
+            
+            // 设置图片变换
+            previewImage.LayoutTransform = scaleTransform;
+
+            // 调整窗口大小以适应图片（但不超过屏幕大小）
+            double screenWidth = SystemParameters.WorkArea.Width;
+            double screenHeight = SystemParameters.WorkArea.Height;
+            double imageWidth = previewBitmap.PixelWidth;
+            double imageHeight = previewBitmap.PixelHeight;
+
+            // 计算合适的窗口大小（保持宽高比，但不超过屏幕的80%）
+            double scale = Math.Min(
+                screenWidth * 0.8 / imageWidth,
+                screenHeight * 0.8 / imageHeight
+            );
+
+            if (scale < 1)
+            {
+                this.Width = imageWidth * scale + 50; // 添加一些边距
+                this.Height = imageHeight * scale + 100; // 为顶部和底部控件留出空间
+            }
+            else
+            {
+                this.Width = Math.Min(imageWidth + 50, screenWidth * 0.8);
+                this.Height = Math.Min(imageHeight + 100, screenHeight * 0.8);
+            }
+        }
+
+        private void OnOpenImageFolderClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start("explorer.exe", $"/select,\"{_imagePath}\"");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"打开目录失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            double scale = e.Delta > 0 ? ScaleRate : 1 / ScaleRate;
+            double newScale = currentScale * scale;
+
+            if (newScale >= MinScale && newScale <= MaxScale)
+            {
+                // 获取鼠标相对于图片的位置
+                Point mousePos = e.GetPosition(previewImage);
+                
+                // 获取鼠标相对于可视区域的位置（百分比）
+                Point scrollMousePos = e.GetPosition(scrollViewer);
+                double scrollXRatio = scrollMousePos.X / scrollViewer.ViewportWidth;
+                double scrollYRatio = scrollMousePos.Y / scrollViewer.ViewportHeight;
+
+                // 更新缩放比例
+                currentScale = newScale;
+                scaleTransform.ScaleX = currentScale;
+                scaleTransform.ScaleY = currentScale;
+                txtZoomLevel.Text = $"缩放: {(currentScale * 100):F0}%";
+
+                // 等待布局更新
+                scrollViewer.UpdateLayout();
+
+                // 计算新的滚动位置
+                double newScrollX = (mousePos.X * currentScale) - (scrollViewer.ViewportWidth * scrollXRatio);
+                double newScrollY = (mousePos.Y * currentScale) - (scrollViewer.ViewportHeight * scrollYRatio);
+
+                // 设置新的滚动位置
+                scrollViewer.ScrollToHorizontalOffset(newScrollX);
+                scrollViewer.ScrollToVerticalOffset(newScrollY);
+            }
+
+            e.Handled = true;
+        }
+
+        private void StartDragging(MouseEventArgs e)
+        {
+            if (imageContainer.IsMouseOver && !isDragging)
+            {
+                lastDragPosition = e.GetPosition(scrollViewer);
+                imageContainer.CaptureMouse();
+                isDragging = true;
+                Cursor = Cursors.Hand;
+            }
+        }
+
+        private void StopDragging()
+        {
+            if (isDragging)
+            {
+                lastDragPosition = null;
+                imageContainer.ReleaseMouseCapture();
+                isDragging = false;
+                Cursor = Cursors.Arrow;
+            }
+        }
+
+        private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            StartDragging(e);
+        }
+
+        private void OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            StartDragging(e);
+        }
+
+        private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            StopDragging();
+        }
+
+        private void OnMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            StopDragging();
+        }
+
+        private void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging && lastDragPosition.HasValue && 
+                (e.LeftButton == MouseButtonState.Pressed || e.RightButton == MouseButtonState.Pressed))
+            {
+                Point currentPosition = e.GetPosition(scrollViewer);
+                double deltaX = currentPosition.X - lastDragPosition.Value.X;
+                double deltaY = currentPosition.Y - lastDragPosition.Value.Y;
+
+                scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - deltaX);
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - deltaY);
+
+                lastDragPosition = currentPosition;
+            }
+            else if (isDragging && e.LeftButton == MouseButtonState.Released && e.RightButton == MouseButtonState.Released)
+            {
+                // 如果两个按钮都释放了，但状态还是拖动，则停止拖动
+                StopDragging();
+            }
+        }
+    }
+} 

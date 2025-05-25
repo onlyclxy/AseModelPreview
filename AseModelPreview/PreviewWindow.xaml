@@ -1,0 +1,43 @@
+<Window x:Class="AseTest.PreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="材质预览" Height="600" Width="800"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel>
+        <!-- Top info panel -->
+        <Border DockPanel.Dock="Top" Background="#F0F0F0" Padding="5">
+            <StackPanel>
+                <TextBlock Text="提示：使用鼠标滚轮缩放，按住鼠标左键拖动平移" Margin="0,0,0,5"/>
+                <TextBlock x:Name="txtZoomLevel" Text="缩放: 100%" Margin="0,0,0,5"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Bottom status bar -->
+        <StatusBar DockPanel.Dock="Bottom" Height="23">
+            <TextBlock x:Name="txtImagePath" TextTrimming="CharacterEllipsis"/>
+        </StatusBar>
+
+        <!-- Scrollable and zoomable image viewer -->
+        <ScrollViewer x:Name="scrollViewer" 
+                      HorizontalScrollBarVisibility="Auto" 
+                      VerticalScrollBarVisibility="Auto">
+            <Grid x:Name="imageContainer" 
+                  Background="#333333"
+                  MouseWheel="OnMouseWheel"
+                  MouseLeftButtonDown="OnMouseLeftButtonDown"
+                  MouseLeftButtonUp="OnMouseLeftButtonUp"
+                  MouseRightButtonDown="OnMouseRightButtonDown"
+                  MouseRightButtonUp="OnMouseRightButtonUp"
+                  MouseMove="OnMouseMove">
+                <Image x:Name="previewImage" 
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       Stretch="None"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+            </Grid>
+        </ScrollViewer>
+    </DockPanel>
+</Window> 
