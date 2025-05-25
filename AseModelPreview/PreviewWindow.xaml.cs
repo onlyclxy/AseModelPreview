@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.Win32;
 
 namespace AseTest
 {
@@ -14,7 +15,7 @@ namespace AseTest
     /// </summary>
     public partial class PreviewWindow : Window
     {
-        private string _imagePath;
+        private BitmapSource _previewBitmap;
         private Point? lastDragPosition;
         private double currentScale = 1.0;
         private const double ScaleRate = 1.1;
@@ -23,12 +24,11 @@ namespace AseTest
         private readonly ScaleTransform scaleTransform = new ScaleTransform(1, 1);
         private bool isDragging = false;
 
-        public PreviewWindow(BitmapSource previewBitmap, string imagePath)
+        public PreviewWindow(BitmapSource previewBitmap)
         {
             InitializeComponent();
+            _previewBitmap = previewBitmap;
             previewImage.Source = previewBitmap;
-            _imagePath = imagePath;
-            txtImagePath.Text = $"已保存至: {_imagePath}";
             
             // 设置图片变换
             previewImage.LayoutTransform = scaleTransform;
@@ -57,11 +57,69 @@ namespace AseTest
             }
         }
 
+        private void OnSaveImageClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveDialog = new SaveFileDialog
+                {
+                    Title = "保存预览图",
+                    Filter = "PNG图片 (*.png)|*.png|JPEG图片 (*.jpg)|*.jpg|所有文件 (*.*)|*.*",
+                    DefaultExt = "png",
+                    FileName = $"材质预览_{DateTime.Now:yyyyMMdd_HHmmss}.png"
+                };
+
+                if (saveDialog.ShowDialog() == true)
+                {
+                    string filePath = saveDialog.FileName;
+                    string extension = Path.GetExtension(filePath).ToLower();
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        BitmapEncoder encoder;
+                        switch (extension)
+                        {
+                            case ".jpg":
+                            case ".jpeg":
+                                encoder = new JpegBitmapEncoder();
+                                break;
+                            case ".png":
+                            default:
+                                encoder = new PngBitmapEncoder();
+                                break;
+                        }
+                        
+                        encoder.Frames.Add(BitmapFrame.Create(_previewBitmap));
+                        encoder.Save(fileStream);
+                    }
+
+                    txtImagePath.Text = $"已保存至: {filePath}";
+                    MessageBox.Show($"图片已成功保存至:\n{filePath}", "保存成功", 
+                                  MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存图片失败: {ex.Message}", "错误", 
+                              MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void OnOpenImageFolderClick(object sender, RoutedEventArgs e)
         {
             try
             {
-                Process.Start("explorer.exe", $"/select,\"{_imagePath}\"");
+                string imagePath = txtImagePath.Text;
+                if (imagePath.StartsWith("已保存至: "))
+                {
+                    imagePath = imagePath.Substring("已保存至: ".Length);
+                    if (File.Exists(imagePath))
+                    {
+                        Process.Start("explorer.exe", $"/select,\"{imagePath}\"");
+                        return;
+                    }
+                }
+                MessageBox.Show("请先保存图片", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {

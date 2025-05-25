@@ -280,20 +280,8 @@ namespace AseTest
                         row * previewHeight + 10);
                 }
 
-                // 自动保存图片
-                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string exePath = AppDomain.CurrentDomain.BaseDirectory;
-                string imagePath = Path.Combine(exePath, $"材质预览_半透明_{timestamp}.png");
-
-                using (var fileStream = new FileStream(imagePath, FileMode.Create))
-                {
-                    var encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(finalBitmap));
-                    encoder.Save(fileStream);
-                }
-
                 // 显示预览窗口
-                var previewWindow = new PreviewWindow(finalBitmap, imagePath);
+                var previewWindow = new PreviewWindow(finalBitmap);
                 previewWindow.Show();
             }
             catch (Exception ex)
@@ -394,20 +382,8 @@ namespace AseTest
                         row * previewHeight + 10);
                 }
 
-                // 自动保存图片
-                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string exePath = AppDomain.CurrentDomain.BaseDirectory;
-                string imagePath = Path.Combine(exePath, $"材质预览_孤立_{timestamp}.png");
-
-                using (var fileStream = new FileStream(imagePath, FileMode.Create))
-                {
-                    var encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(finalBitmap));
-                    encoder.Save(fileStream);
-                }
-
                 // 显示预览窗口
-                var previewWindow = new PreviewWindow(finalBitmap, imagePath);
+                var previewWindow = new PreviewWindow(finalBitmap);
                 previewWindow.Show();
             }
             catch (Exception ex)

@@ -9,15 +9,24 @@
     <DockPanel>
         <!-- Top info panel -->
         <Border DockPanel.Dock="Top" Background="#F0F0F0" Padding="5">
-            <StackPanel>
-                <TextBlock Text="提示：使用鼠标滚轮缩放，按住鼠标左键拖动平移" Margin="0,0,0,5"/>
-                <TextBlock x:Name="txtZoomLevel" Text="缩放: 100%" Margin="0,0,0,5"/>
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="提示：使用鼠标滚轮缩放，按住鼠标左键拖动平移" Margin="0,0,0,5"/>
+                    <TextBlock x:Name="txtZoomLevel" Text="缩放: 100%" Margin="0,0,0,5"/>
+                </StackPanel>
+                <Button Grid.Column="1" x:Name="btnSave" Content="保存图片" 
+                        Click="OnSaveImageClick" Padding="10,5" 
+                        VerticalAlignment="Center" Margin="5,0,0,0"/>
+            </Grid>
         </Border>
 
         <!-- Bottom status bar -->
         <StatusBar DockPanel.Dock="Bottom" Height="23">
-            <TextBlock x:Name="txtImagePath" TextTrimming="CharacterEllipsis"/>
+            <TextBlock x:Name="txtImagePath" Text="点击'保存图片'按钮来保存预览图" TextTrimming="CharacterEllipsis"/>
         </StatusBar>
 
         <!-- Scrollable and zoomable image viewer -->
