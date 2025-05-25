@@ -16,6 +16,7 @@ namespace AseTest
     public partial class PreviewWindow : Window
     {
         private BitmapSource _previewBitmap;
+        private string _modelName;
         private Point? lastDragPosition;
         private double currentScale = 1.0;
         private const double ScaleRate = 1.1;
@@ -24,10 +25,11 @@ namespace AseTest
         private readonly ScaleTransform scaleTransform = new ScaleTransform(1, 1);
         private bool isDragging = false;
 
-        public PreviewWindow(BitmapSource previewBitmap)
+        public PreviewWindow(BitmapSource previewBitmap, string modelName = "未知模型")
         {
             InitializeComponent();
             _previewBitmap = previewBitmap;
+            _modelName = SanitizeFileName(modelName);
             previewImage.Source = previewBitmap;
             
             // 设置图片变换
@@ -57,16 +59,41 @@ namespace AseTest
             }
         }
 
+        private string SanitizeFileName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return "未知模型";
+
+            // 保留完整的文件名（包括扩展名）
+            string cleanFileName = fileName;
+            
+            // 移除或替换不允许在文件名中使用的字符
+            char[] invalidChars = Path.GetInvalidFileNameChars();
+            foreach (char c in invalidChars)
+            {
+                cleanFileName = cleanFileName.Replace(c, '_');
+            }
+            
+            // 限制长度，避免文件名过长
+            if (cleanFileName.Length > 50)
+                cleanFileName = cleanFileName.Substring(0, 50);
+                
+            return cleanFileName;
+        }
+
         private void OnSaveImageClick(object sender, RoutedEventArgs e)
         {
             try
             {
+                // 创建更清晰的时间戳格式：年-月-日_时-分-秒
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+                
                 var saveDialog = new SaveFileDialog
                 {
                     Title = "保存预览图",
                     Filter = "PNG图片 (*.png)|*.png|JPEG图片 (*.jpg)|*.jpg|所有文件 (*.*)|*.*",
                     DefaultExt = "png",
-                    FileName = $"材质预览_{DateTime.Now:yyyyMMdd_HHmmss}.png"
+                    FileName = $"[材质预览]_{_modelName}_{timestamp}.png"
                 };
 
                 if (saveDialog.ShowDialog() == true)

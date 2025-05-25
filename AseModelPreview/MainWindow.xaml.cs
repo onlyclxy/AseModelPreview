@@ -24,7 +24,9 @@ namespace AseTest
         private List<GeometryModel3D> _models;
         private Model3DGroup _originalModelGroup;
         private List<DiffuseMaterial> _originalMaterials;  // 存储原始材质
+        private string _currentModelPath; // 存储当前模型路径
         private readonly string[] _supportedExtensions = { ".obj", ".fbx", ".ase", ".gltf", ".glb",".dae" };
+
 
         public MainWindow()
         {
@@ -111,6 +113,9 @@ namespace AseTest
 
             try
             {
+                // 保存当前模型路径
+                _currentModelPath = path;
+                
                 // 使用 AssimpNet 加载模型并进行基础处理
                 var importer = new AssimpContext();
                 _currentScene = importer.ImportFile(path,
@@ -281,7 +286,8 @@ namespace AseTest
                 }
 
                 // 显示预览窗口
-                var previewWindow = new PreviewWindow(finalBitmap);
+                string modelName = Path.GetFileName(_currentModelPath);
+                var previewWindow = new PreviewWindow(finalBitmap, modelName);
                 previewWindow.Show();
             }
             catch (Exception ex)
@@ -383,7 +389,8 @@ namespace AseTest
                 }
 
                 // 显示预览窗口
-                var previewWindow = new PreviewWindow(finalBitmap);
+                string modelName = Path.GetFileName(_currentModelPath);
+                var previewWindow = new PreviewWindow(finalBitmap, modelName);
                 previewWindow.Show();
             }
             catch (Exception ex)
