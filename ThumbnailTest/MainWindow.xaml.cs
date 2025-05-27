@@ -35,7 +35,7 @@ namespace ThumbnailTestConsole
         {
             var dialog = new OpenFileDialog
             {
-                Filter = "支持的3D模型|*.ase;*.fbx;*.obj;*.gltf;*.glb|所有文件|*.*",
+                Filter = "支持的3D模型|*.ase;*.fbx;*.obj;*.gltf;*.glb;*.dae|所有文件|*.*",
                 Multiselect = true
             };
 
@@ -86,7 +86,7 @@ namespace ThumbnailTestConsole
                 if (Directory.Exists(path))
                 {
                     var files = Directory.GetFiles(path, "*.*")
-                        .Where(f => new[] { ".ase", ".fbx", ".obj", ".gltf", ".glb" }
+                        .Where(f => new[] { ".ase", ".fbx", ".obj", ".gltf", ".glb",".dae" }
                             .Contains(Path.GetExtension(f).ToLower()))
                         .ToArray();
                     ProcessFiles(files);

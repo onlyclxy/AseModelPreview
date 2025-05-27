@@ -16,6 +16,7 @@ namespace AssimpThumbnailProvider.Thumbnail
     [COMServerAssociation(AssociationType.ClassOfExtension, ".obj")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".gltf")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".glb")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".dae")]
     [DisplayName("Assimp 3D Thumbnail Provider")]
     [ProgId("AssimpThumbnailProvider.Thumbnail")]
     public class AssimpThumbnailProvider : SharpThumbnailHandler
