@@ -7,16 +7,53 @@
         mc:Ignorable="d"
         Title="3D模型材质预览器" Height="600" Width="800">
     <DockPanel>
+        <!-- Menu bar -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="文件(_F)">
+                <MenuItem x:Name="menuLoadModel" Header="加载模型(_O)" Click="OnLoadModelClick" InputGestureText="Ctrl+O"/>
+                <Separator/>
+                <MenuItem Header="退出(_X)" Click="OnExitClick" InputGestureText="Alt+F4"/>
+            </MenuItem>
+            <MenuItem Header="功能(_T)">
+                <MenuItem x:Name="menuMaterialPreview" Header="孤立预览(_I)" Click="OnGenerateMaterialPreviewClick"/>
+                <MenuItem x:Name="menuTransparentPreview" Header="透明预览(_T)" Click="OnGenerateTransparentPreviewClick"/>
+                <MenuItem x:Name="menuUVMapping" Header="查看UV映射(_U)" Click="OnShowUVMappingClick"/>
+            </MenuItem>
+            <MenuItem Header="显示(_D)">
+                <MenuItem x:Name="menuVertexColor" Header="显示顶点颜色(_C)" IsCheckable="True" Checked="OnShowVertexColorChanged" Unchecked="OnShowVertexColorChanged"/>
+                <MenuItem x:Name="menuVertexAlpha" Header="显示顶点透明度(_A)" IsCheckable="True" Checked="OnShowVertexAlphaChanged" Unchecked="OnShowVertexAlphaChanged"/>
+            </MenuItem>
+            <MenuItem Header="插件(_P)" x:Name="menuPlugins">
+                <!-- 插件菜单项将动态添加 -->
+            </MenuItem>
+            <MenuItem Header="设置(_S)">
+                <MenuItem Header="工具栏设置(_T)" Click="OnToolbarSettingsClick"/>
+                <Separator/>
+                <MenuItem Header="关于(_A)" Click="OnAboutClick"/>
+            </MenuItem>
+        </Menu>
+        
         <!-- Top control panel -->
         <Border DockPanel.Dock="Top" Background="#F0F0F0" Padding="5">
-            <StackPanel Orientation="Horizontal">
-                <Button Content="加载模型" Click="OnLoadModelClick" Padding="8,3" Margin="0,0,5,0"/>
-                <Button Content="生成材质预览(孤立)" Click="OnGenerateMaterialPreviewClick" Padding="8,3" Margin="0,0,5,0"/>
-                <Button Content="生成材质预览(半透明)" Click="OnGenerateTransparentPreviewClick" Padding="8,3" Margin="0,0,5,0"/>
+            <StackPanel x:Name="topPanel" Orientation="Horizontal">
+                <Button x:Name="btnLoadModel" Content="加载模型" Click="OnLoadModelClick" Padding="8,3" Margin="0,0,5,0"/>
+                <Button x:Name="btnMaterialPreview" Content="孤立预览" Click="OnGenerateMaterialPreviewClick" Padding="8,3" Margin="0,0,5,0"/>
+                <Button x:Name="btnTransparentPreview" Content="透明预览" Click="OnGenerateTransparentPreviewClick" Padding="8,3" Margin="0,0,5,0"/>
+                <Button x:Name="btnUVMapping" Content="查看UV映射" Click="OnShowUVMappingClick" Padding="8,3" Margin="0,0,5,0"/>
 
-                <!-- Alpha editor -->
-                <TextBlock Text="透明度 (0–255):" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                <TextBox x:Name="txtAlpha" Width="50" Text="64" VerticalAlignment="Center" Padding="3,1" />
+                <!-- Vertex display options -->
+                <Separator Margin="5,0" Background="Gray" Width="1"/>
+                <CheckBox x:Name="chkVertexColor" Content="显示顶点颜色" VerticalAlignment="Center" Margin="5,0" 
+                          Checked="OnShowVertexColorChanged" Unchecked="OnShowVertexColorChanged"/>
+                <CheckBox x:Name="chkVertexAlpha" Content="显示顶点透明度" VerticalAlignment="Center" Margin="5,0" 
+                          Checked="OnShowVertexAlphaChanged" Unchecked="OnShowVertexAlphaChanged"/>
+
+                <!-- Alpha editor group -->
+                <StackPanel x:Name="alphaEditorGroup" Orientation="Horizontal">
+                    <Separator Margin="5,0" Background="Gray" Width="1"/>
+                    <TextBlock Text="透明度 (0–255):" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                    <TextBox x:Name="txtAlpha" Width="50" Text="64" VerticalAlignment="Center" Padding="3,1" />
+                </StackPanel>
             </StackPanel>
         </Border>
 

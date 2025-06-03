@@ -1,0 +1,61 @@
+<Window x:Class="AseTest.ToolbarSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="工具栏设置" Height="450" Width="500"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <DockPanel>
+        <!-- Top description -->
+        <Border DockPanel.Dock="Top" Background="#F0F0F0" Padding="10">
+            <TextBlock Text="选择要在工具栏中显示的功能按钮：" FontWeight="Bold"/>
+        </Border>
+
+        <!-- Bottom buttons -->
+        <Border DockPanel.Dock="Bottom" Background="#F0F0F0" Padding="10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="全部显示" Click="OnShowAllClick" Padding="10,5" Margin="0,0,5,0"/>
+                <Button Content="全部隐藏" Click="OnHideAllClick" Padding="10,5" Margin="0,0,5,0"/>
+                <Button Content="恢复默认" Click="OnRestoreDefaultClick" Padding="10,5" Margin="0,0,10,0"/>
+                <Button Content="确定" Click="OnOkClick" Padding="15,5" Margin="0,0,5,0" IsDefault="True"/>
+                <Button Content="取消" Click="OnCancelClick" Padding="15,5" IsCancel="True"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Settings content -->
+        <ScrollViewer Margin="10">
+            <StackPanel>
+                <GroupBox Header="核心功能" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <CheckBox x:Name="chkLoadModel" Content="加载模型" Margin="0,5"/>
+                        <CheckBox x:Name="chkMaterialPreview" Content="孤立预览" Margin="0,5"/>
+                        <CheckBox x:Name="chkTransparentPreview" Content="透明预览" Margin="0,5"/>
+                        <CheckBox x:Name="chkUVMapping" Content="查看UV映射" Margin="0,5"/>
+                        <CheckBox x:Name="chkAlphaEditor" Content="透明度控制器 (0-255)" Margin="0,5"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="顶点显示功能" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <CheckBox x:Name="chkVertexColor" Content="显示顶点颜色" Margin="0,5"/>
+                        <CheckBox x:Name="chkVertexAlpha" Content="显示顶点透明度" Margin="0,5"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="插件功能" Margin="0,0,0,10" x:Name="grpPlugins">
+                    <StackPanel x:Name="pluginCheckBoxPanel" Margin="10">
+                        <!-- 插件复选框将动态添加 -->
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="其他选项" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <CheckBox x:Name="chkCompactMode" Content="紧凑模式（减小按钮间距）" Margin="0,5"/>
+                        <CheckBox x:Name="chkShowButtonText" Content="显示按钮文字" Margin="0,5" IsChecked="True"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window> 

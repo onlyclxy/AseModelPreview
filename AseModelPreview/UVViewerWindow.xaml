@@ -1,0 +1,61 @@
+<Window x:Class="AseTest.UVViewerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="UV映射查看器" Height="600" Width="800"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel>
+        <!-- Top control panel -->
+        <Border DockPanel.Dock="Top" Background="#F0F0F0" Padding="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="UV通道:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <ComboBox x:Name="cmbUVChannels" Width="100" VerticalAlignment="Center" 
+                              SelectionChanged="OnUVChannelSelectionChanged" Margin="0,0,10,0"/>
+                    
+                    <TextBlock Text="网格:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <ComboBox x:Name="cmbMeshes" Width="150" VerticalAlignment="Center" 
+                              SelectionChanged="OnMeshSelectionChanged" Margin="0,0,10,0"/>
+                    
+                    <CheckBox x:Name="chkShowAllMeshes" Content="显示所有网格" VerticalAlignment="Center" 
+                              Checked="OnShowAllMeshesChanged" Unchecked="OnShowAllMeshesChanged" Margin="0,0,10,0"/>
+                    
+                    <TextBlock Text="背景:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <ComboBox x:Name="cmbBackground" Width="80" VerticalAlignment="Center" 
+                              SelectionChanged="OnBackgroundChanged" Margin="0,0,10,0">
+                        <ComboBoxItem Content="白色" Tag="White"/>
+                        <ComboBoxItem Content="黑色" Tag="Black"/>
+                        <ComboBoxItem Content="灰色" Tag="Gray"/>
+                        <ComboBoxItem Content="棋盘" Tag="Checkerboard"/>
+                    </ComboBox>
+                    
+                    <CheckBox x:Name="chkShowWireframe" Content="显示线框" VerticalAlignment="Center" 
+                              Checked="OnShowWireframeChanged" Unchecked="OnShowWireframeChanged" Margin="0,0,10,0"/>
+                </StackPanel>
+                
+                <Button Grid.Column="1" x:Name="btnSaveUV" Content="保存UV图" 
+                        Click="OnSaveUVClick" Padding="10,5" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Status bar at the bottom -->
+        <StatusBar DockPanel.Dock="Bottom" Height="23">
+            <TextBlock x:Name="txtUVInfo" Text="请选择UV通道和网格" TextTrimming="CharacterEllipsis"/>
+        </StatusBar>
+
+        <!-- UV display area -->
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <Grid x:Name="uvDisplayArea" Background="White" MinWidth="512" MinHeight="512">
+                <Canvas x:Name="uvCanvas" Width="512" Height="512" 
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+        </ScrollViewer>
+    </DockPanel>
+</Window> 
