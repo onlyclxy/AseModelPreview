@@ -13,7 +13,7 @@ namespace AssimpThumbnailProvider.Utilities
         private readonly AssimpContext _context = new AssimpContext();
         
         // 使用与RenderHelper相同的日志开关
-        private const bool ENABLE_FILE_LOGGING = false;
+        private const bool ENABLE_FILE_LOGGING = true;
         private static readonly string LogFilePath = Path.Combine(
             Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
             "thumbnail_loader.log"

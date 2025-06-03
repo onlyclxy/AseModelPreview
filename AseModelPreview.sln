@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AseModelPreview", "AseModel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelPlugin", "ModelPlugin\ModelPlugin.csproj", "{FB574AC1-4CCB-47E8-B5A8-6480F65231A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmlPathGet", "DmlPathGet\DmlPathGet.csproj", "{3E86324C-D8C8-4C69-87C2-9459E96302AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{FB574AC1-4CCB-47E8-B5A8-6480F65231A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB574AC1-4CCB-47E8-B5A8-6480F65231A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB574AC1-4CCB-47E8-B5A8-6480F65231A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E86324C-D8C8-4C69-87C2-9459E96302AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E86324C-D8C8-4C69-87C2-9459E96302AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E86324C-D8C8-4C69-87C2-9459E96302AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E86324C-D8C8-4C69-87C2-9459E96302AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

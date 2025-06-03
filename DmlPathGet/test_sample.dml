@@ -1,0 +1,21 @@
+[SHADER]
+11111111
+[GEOMETRY MESH]
+..\resources\art\eff\wedding\skin\750\model\skin750_sphere.ase
+[NEW_SHADER]
+..\resources\art\eff\wedding\skin\750\model\skin750_sphere.mat
+[SubEntity]
+skin750_sphere
+..\resources\art\eff\wedding\skin\750\model\skin750_sphere.mat
+skin750_sphere
+
+[SHADER]
+22222222
+[SKIN]
+..\resources\art\role\npc\PVE\Littlemonster\pve_bear_01\pve_bear_01.ase
+
+[GEOMETRY MESH]
+lonely_file.ase
+
+[SKIN]
+another_file.ase 

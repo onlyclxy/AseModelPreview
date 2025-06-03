@@ -16,11 +16,30 @@ using System.Windows.Controls;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows.Threading;
+using System.IO;
 
 namespace AssimpThumbnailProvider.Utilities
 {
     public static class RenderHelper
     {
+        private static readonly string LogFilePath = Path.Combine(
+            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
+            "render_helper.log"
+        );
+
+        private static void LogToFile(string message)
+        {
+            try
+            {
+                string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
+                File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
+            }
+            catch
+            {
+                // 忽略日志写入错误
+            }
+        }
+
         public static Bitmap RenderMeshesToBitmap(IEnumerable<MeshData> meshes, int size)
         {
             try
@@ -28,7 +47,7 @@ namespace AssimpThumbnailProvider.Utilities
                 // 确保在STA线程中运行
                 if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
                 {
-                    Debug.WriteLine("当前线程不是STA，创建新的STA线程进行渲染");
+                    LogToFile("当前线程不是STA，创建新的STA线程进行渲染");
                     Bitmap result = null;
                     Exception renderException = null;
                     
@@ -41,8 +60,8 @@ namespace AssimpThumbnailProvider.Utilities
                         catch (Exception ex)
                         {
                             renderException = ex;
-                            Debug.WriteLine($"STA线程中渲染出错: {ex.Message}");
-                            Debug.WriteLine(ex.StackTrace);
+                            LogToFile($"STA线程中渲染出错: {ex.Message}");
+                            LogToFile(ex.StackTrace);
                         }
                     });
                     
@@ -60,8 +79,8 @@ namespace AssimpThumbnailProvider.Utilities
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"渲染缩略图时出错: {ex.Message}");
-                Debug.WriteLine(ex.StackTrace);
+                LogToFile($"渲染缩略图时出错: {ex.Message}");
+                LogToFile(ex.StackTrace);
                 throw;
             }
         }
