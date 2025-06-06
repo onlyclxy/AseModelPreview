@@ -2,30 +2,13 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.IO;
+using AssimpThumbnailProvider.Utilities;
 
 namespace AssimpThumbnailProvider.DmlPath
 {
     public static class EverythingApi
     {
         private const string EVERYTHING_DLL = "Everything64.dll";
-        
-        private static readonly string LogFilePath = Path.Combine(
-            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
-            "everything_api.log"
-        );
-
-        private static void LogToFile(string message)
-        {
-            try
-            {
-                string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
-                File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
-            }
-            catch
-            {
-                // 忽略日志写入错误
-            }
-        }
         
         [DllImport(EVERYTHING_DLL, CharSet = CharSet.Unicode)]
         public static extern int Everything_SetSearchW(string lpSearchString);
@@ -67,7 +50,7 @@ namespace AssimpThumbnailProvider.DmlPath
         {
             try
             {
-                LogToFile($"开始搜索文件: {filename}, 搜索路径: {searchPath ?? "全盘"}");
+                Logger.LogToFile($"开始搜索文件: {filename}, 搜索路径: {searchPath ?? "全盘"}", "EverythingApi");
                 
                 Everything_Reset();
                 
@@ -84,7 +67,7 @@ namespace AssimpThumbnailProvider.DmlPath
                     searchString = $"path:\"{searchPath}\" \"{filename}\"";
                 }
 
-                LogToFile($"Everything搜索字符串: {searchString}");
+                Logger.LogToFile($"Everything搜索字符串: {searchString}", "EverythingApi");
 
                 Everything_SetSearchW(searchString);
                 Everything_SetMatchCase(false);
@@ -97,32 +80,32 @@ namespace AssimpThumbnailProvider.DmlPath
                 if (Everything_QueryW(true))
                 {
                     int numResults = Everything_GetNumResults();
-                    LogToFile($"Everything搜索完成，找到 {numResults} 个结果");
+                    Logger.LogToFile($"Everything搜索完成，找到 {numResults} 个结果", "EverythingApi");
                     
                     if (numResults > 0)
                     {
                         StringBuilder sb = new StringBuilder(260);
                         Everything_GetResultFullPathNameW(0, sb, 260);
                         string result = sb.ToString();
-                        LogToFile($"Everything搜索成功，返回结果: {result}");
+                        Logger.LogToFile($"Everything搜索成功，返回结果: {result}", "EverythingApi");
                         return result;
                     }
                     else
                     {
-                        LogToFile("Everything搜索未找到匹配文件");
+                        Logger.LogToFile("Everything搜索未找到匹配文件", "EverythingApi");
                     }
                 }
                 else
                 {
-                    LogToFile("Everything查询失败");
+                    Logger.LogToFile("Everything查询失败", "EverythingApi");
                 }
             }
             catch (Exception ex)
             {
-                LogToFile($"Everything搜索失败: {ex.Message}");
+                Logger.LogToFile($"Everything搜索失败: {ex.Message}", "EverythingApi");
             }
             
-            LogToFile("搜索失败，返回null");
+            Logger.LogToFile("搜索失败，返回null", "EverythingApi");
             return null;
         }
     }

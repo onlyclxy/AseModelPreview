@@ -15,6 +15,7 @@ using WpfColor = System.Windows.Media.Color;
 using System.Windows.Controls;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.IO;
 
@@ -22,21 +23,57 @@ namespace AssimpThumbnailProvider.Utilities
 {
     public static class RenderHelper
     {
-        private static readonly string LogFilePath = Path.Combine(
-            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
-            "render_helper.log"
-        );
+        // 静态的WPF应用程序实例，用于多线程渲染
+        private static Application _wpfApp;
+        private static Thread _wpfThread;
+        private static readonly object _lockObject = new object();
+        private static Dispatcher _wpfDispatcher;
 
-        private static void LogToFile(string message)
+        private static void EnsureWpfApplicationExists()
         {
-            try
+            lock (_lockObject)
             {
-                string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
-                File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
-            }
-            catch
-            {
-                // 忽略日志写入错误
+                if (_wpfApp != null && _wpfDispatcher != null)
+                    return;
+
+                Logger.LogToFile("初始化WPF应用程序线程", "RenderHelper");
+                var resetEvent = new ManualResetEventSlim(false);
+                Exception initException = null;
+
+                _wpfThread = new Thread(() =>
+                {
+                    try
+                    {
+                        // 创建WPF应用程序
+                        _wpfApp = new Application();
+                        _wpfDispatcher = Dispatcher.CurrentDispatcher;
+                        
+                        Logger.LogToFile("WPF应用程序已创建，通知主线程", "RenderHelper");
+                        resetEvent.Set();
+                        
+                        // 启动消息泵
+                        Logger.LogToFile("启动WPF消息泵", "RenderHelper");
+                        Dispatcher.Run();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogToFile($"WPF应用程序初始化失败: {ex.Message}", "RenderHelper");
+                        initException = ex;
+                        resetEvent.Set();
+                    }
+                });
+
+                _wpfThread.SetApartmentState(ApartmentState.STA);
+                _wpfThread.IsBackground = true; // 设置为后台线程，主程序退出时自动结束
+                _wpfThread.Start();
+
+                // 等待WPF应用程序初始化完成
+                resetEvent.Wait();
+                
+                if (initException != null)
+                    throw new Exception("WPF应用程序初始化失败", initException);
+                    
+                Logger.LogToFile("WPF应用程序初始化完成", "RenderHelper");
             }
         }
 
@@ -44,48 +81,50 @@ namespace AssimpThumbnailProvider.Utilities
         {
             try
             {
-                // 确保在STA线程中运行
-                if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
-                {
-                    LogToFile("当前线程不是STA，创建新的STA线程进行渲染");
-                    Bitmap result = null;
-                    Exception renderException = null;
-                    
-                    var thread = new Thread(() =>
-                    {
-                        try
-                        {
-                            result = RenderMeshesInSTAThread(meshes, size);
-                        }
-                        catch (Exception ex)
-                        {
-                            renderException = ex;
-                            LogToFile($"STA线程中渲染出错: {ex.Message}");
-                            LogToFile(ex.StackTrace);
-                        }
-                    });
-                    
-                    thread.SetApartmentState(ApartmentState.STA);
-                    thread.Start();
-                    thread.Join(); // 等待渲染完成
-                    
-                    if (renderException != null)
-                        throw new Exception("渲染过程中出错", renderException);
-                        
-                    return result;
-                }
+                Logger.LogToFile($"开始渲染网格到位图，大小: {size}x{size}", "RenderHelper");
                 
-                return RenderMeshesInSTAThread(meshes, size);
+                // 确保WPF应用程序存在
+                EnsureWpfApplicationExists();
+                
+                if (_wpfDispatcher == null)
+                {
+                    throw new Exception("WPF Dispatcher未初始化");
+                }
+
+                // 在WPF线程中执行渲染
+                Bitmap result = null;
+                Exception renderException = null;
+
+                Logger.LogToFile("在WPF Dispatcher中执行渲染", "RenderHelper");
+                _wpfDispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        result = RenderMeshesInWpfThread(meshes, size);
+                        Logger.LogToFile("WPF线程渲染完成", "RenderHelper");
+                    }
+                    catch (Exception ex)
+                    {
+                        renderException = ex;
+                        Logger.LogToFile($"WPF线程中渲染出错: {ex.Message}", "RenderHelper");
+                        Logger.LogToFile(ex.StackTrace, "RenderHelper");
+                    }
+                });
+
+                if (renderException != null)
+                    throw new Exception("渲染过程中出错", renderException);
+
+                return result;
             }
             catch (Exception ex)
             {
-                LogToFile($"渲染缩略图时出错: {ex.Message}");
-                LogToFile(ex.StackTrace);
+                Logger.LogToFile($"渲染缩略图时出错: {ex.Message}", "RenderHelper");
+                Logger.LogToFile(ex.StackTrace, "RenderHelper");
                 throw;
             }
         }
 
-        private static Bitmap RenderMeshesInSTAThread(IEnumerable<MeshData> meshes, int size)
+        private static Bitmap RenderMeshesInWpfThread(IEnumerable<MeshData> meshes, int size)
         {
             // 创建和配置Grid来托管视口
             var hostGrid = new Grid
@@ -246,6 +285,21 @@ namespace AssimpThumbnailProvider.Utilities
             source.CopyPixels(Int32Rect.Empty, bmpData.Scan0, bmpData.Height * bmpData.Stride, bmpData.Stride);
             bmp.UnlockBits(bmpData);
             return bmp;
+        }
+
+        // 清理资源的方法（可选，在应用程序退出时调用）
+        public static void Cleanup()
+        {
+            lock (_lockObject)
+            {
+                if (_wpfDispatcher != null)
+                {
+                    Logger.LogToFile("关闭WPF应用程序", "RenderHelper");
+                    _wpfDispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
+                    _wpfDispatcher = null;
+                    _wpfApp = null;
+                }
+            }
         }
     }
 } 

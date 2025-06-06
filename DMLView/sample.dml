@@ -1,0 +1,39 @@
+// DML文件示例
+// 这是一个包含各种DML元素的示例文件
+
+[SHADER]
+11111111
+
+[GEOMETRY MESH]
+..\resources\art\eff\chair\c25851\model\c25851_md_xuanzhuan02.ase
+
+[NEW_SHADER]
+..\resources\art\eff\chair\c25851\texture\c25851_md_xuanzhuan02.mat
+
+[SubEntity]
+c25851_md_xuanzhuan02
+..\resources\art\eff\chair\c25851\texture\c25851_md_xuanzhuan02.mat
+c25851_md_xuanzhuan02
+
+[MATERIAL]
+DefaultMaterial
+..\resources\textures\default.png
+1.0, 0.5, 0.2
+
+[ANIMATION]
+walk_cycle
+..\animations\walk.fbx
+30
+
+[LIGHTING]
+directional_light
+0.8, 0.8, 0.8
+1.0, -1.0, 0.5
+
+# 这是另一种注释格式
+// 支持多种注释样式
+
+[CONFIG]
+version=1.0
+author=DMLEditor
+date=2024-01-01 

@@ -23,24 +23,6 @@ namespace AssimpThumbnailProvider.Thumbnail
     [ProgId("AssimpThumbnailProvider.Thumbnail")]
     public class AssimpThumbnailProvider : SharpThumbnailHandler
     {
-        private static readonly string LogFilePath = Path.Combine(
-            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
-            "thumbnail_provider.log"
-        );
-
-        private static void LogToFile(string message)
-        {
-            try
-            {
-                string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
-                File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
-            }
-            catch
-            {
-                // 忽略日志写入错误
-            }
-        }
-
         private string GetOriginalFilePath()
         {
             try
@@ -70,12 +52,12 @@ namespace AssimpThumbnailProvider.Thumbnail
                     }
                 }
 
-                LogToFile("无法获取原始文件路径");
+                Logger.LogToFile("无法获取原始文件路径", "ThumbnailProvider");
                 return null;
             }
             catch (Exception ex)
             {
-                LogToFile($"获取原始文件路径时出错: {ex.Message}");
+                Logger.LogToFile($"获取原始文件路径时出错: {ex.Message}", "ThumbnailProvider");
                 return null;
             }
         }
@@ -84,22 +66,22 @@ namespace AssimpThumbnailProvider.Thumbnail
         {
             try
             {
-                LogToFile($"开始处理缩略图请求: {SelectedItemStream?.Name}, 大小: {width}x{width}");
+                Logger.LogToFile($"开始处理缩略图请求: {SelectedItemStream?.Name}, 大小: {width}x{width}", "ThumbnailProvider");
 
                 if (SelectedItemStream == null)
                 {
                     throw new Exception("没有选中的文件流");
                 }
 
-                LogToFile($"SelectedItemStream.Position:{SelectedItemStream.Position}");
+                Logger.LogToFile($"SelectedItemStream.Position:{SelectedItemStream.Position}", "ThumbnailProvider");
 
                 // 获取文件扩展名
                 string extension = Path.GetExtension(SelectedItemStream.Name)?.ToLower() ?? "";
-                LogToFile($"文件扩展名: {extension}");
+                Logger.LogToFile($"文件扩展名: {extension}", "ThumbnailProvider");
 
                 // 创建临时文件
                 string tempFile = Path.Combine(Path.GetTempPath(), $"model_preview_{Guid.NewGuid()}{extension}");
-                LogToFile($"临时文件路径: {tempFile}");
+                Logger.LogToFile($"临时文件路径: {tempFile}", "ThumbnailProvider");
 
                 try
                 {
@@ -120,7 +102,7 @@ namespace AssimpThumbnailProvider.Thumbnail
                         }
                         
                         fileStream.Flush();
-                        LogToFile($"已复制 {totalBytes} 字节到临时文件");
+                        Logger.LogToFile($"已复制 {totalBytes} 字节到临时文件", "ThumbnailProvider");
                     }
 
                     // 验证临时文件
@@ -135,24 +117,24 @@ namespace AssimpThumbnailProvider.Thumbnail
                         throw new Exception("临时文件是空的");
                     }
 
-                    LogToFile($"临时文件大小: {fileInfo.Length} 字节");
+                    Logger.LogToFile($"临时文件大小: {fileInfo.Length} 字节", "ThumbnailProvider");
 
                     // 检查是否是特殊文件类型
-                    LogToFile($"检查是否是特殊文件类型: {tempFile}");
+                    Logger.LogToFile($"检查是否是特殊文件类型: {tempFile}", "ThumbnailProvider");
                     if (SpecialFileRenderer.IsSpecialFile(tempFile))
                     {
-                        LogToFile($"检测到特殊文件类型，尝试特殊渲染");
+                        Logger.LogToFile($"检测到特殊文件类型，尝试特殊渲染", "ThumbnailProvider");
                         var specialBitmap = SpecialFileRenderer.RenderSpecialFile(tempFile, width);
                         if (specialBitmap != null)
                         {
-                            LogToFile("使用特殊文件渲染器成功生成缩略图");
+                            Logger.LogToFile("使用特殊文件渲染器成功生成缩略图", "ThumbnailProvider");
                             return specialBitmap;
                         }
-                        LogToFile("特殊文件渲染失败，尝试标准渲染流程");
+                        Logger.LogToFile("特殊文件渲染失败，尝试标准渲染流程", "ThumbnailProvider");
                     }
 
                     // 标准渲染流程：加载模型数据
-                    LogToFile("开始标准渲染流程");
+                    Logger.LogToFile("开始标准渲染流程", "ThumbnailProvider");
                     var loader = new AssimpLoader();
                     var meshes = loader.Load(tempFile);
 
@@ -161,7 +143,7 @@ namespace AssimpThumbnailProvider.Thumbnail
                         throw new Exception("没有加载到任何网格数据");
                     }
 
-                    LogToFile($"成功加载了 {meshes.Count} 个网格");
+                    Logger.LogToFile($"成功加载了 {meshes.Count} 个网格", "ThumbnailProvider");
 
                     // 渲染到 Bitmap
                     return RenderHelper.RenderMeshesToBitmap(meshes, (int)width);
@@ -174,19 +156,19 @@ namespace AssimpThumbnailProvider.Thumbnail
                         if (File.Exists(tempFile))
                         {
                             File.Delete(tempFile);
-                            LogToFile("临时文件已删除");
+                            Logger.LogToFile("临时文件已删除", "ThumbnailProvider");
                         }
                     }
                     catch (Exception ex)
                     {
-                        LogToFile($"删除临时文件时出错: {ex.Message}");
+                        Logger.LogToFile($"删除临时文件时出错: {ex.Message}", "ThumbnailProvider");
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogToFile($"生成缩略图时出错: {ex.Message}");
-                LogToFile($"错误堆栈: {ex.StackTrace}");
+                Logger.LogToFile($"生成缩略图时出错: {ex.Message}", "ThumbnailProvider");
+                Logger.LogToFile($"错误堆栈: {ex.StackTrace}", "ThumbnailProvider");
 
                 // 显示错误信息的缩略图
                 Bitmap bmp = new Bitmap((int)width, (int)width);

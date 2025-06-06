@@ -23,6 +23,10 @@ namespace AseTest
         private bool _showWireframe = true;
         private bool _showAllMeshes = false;
 
+        // 缓存相关变量
+        private Canvas _cachedUVCanvas = null;
+        private string _currentCacheKey = "";
+
         // 为不同网格定义不同的颜色
         private readonly Color[] _meshColors = new Color[]
         {
@@ -111,6 +115,7 @@ namespace AseTest
 
         private void OnUVChannelSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            ClearCache(); // 清空缓存，因为UV通道改变了
             DisplayUV();
         }
 
@@ -118,29 +123,53 @@ namespace AseTest
         {
             if (!_showAllMeshes)
             {
+                ClearCache(); // 清空缓存，因为网格选择改变了
                 DisplayUV();
             }
         }
 
         private void OnShowAllMeshesChanged(object sender, RoutedEventArgs e)
         {
-            _showAllMeshes = chkShowAllMeshes.IsChecked ?? false;
+            bool newShowAllMeshes = chkShowAllMeshes.IsChecked ?? false;
+            
+            // 如果用户勾选了"显示所有网格"，显示确认对话框
+            if (newShowAllMeshes && !_showAllMeshes)
+            {
+                var result = MessageBox.Show(
+                    "显示所有网格的UV映射可能会很慢，特别是对于包含大量网格和面片的复杂模型。\n\n" +
+                    "您确定要继续吗？",
+                    "性能警告",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+                
+                if (result == MessageBoxResult.No)
+                {
+                    // 用户选择取消，恢复复选框状态
+                    chkShowAllMeshes.IsChecked = false;
+                    return;
+                }
+            }
+            
+            _showAllMeshes = newShowAllMeshes;
             
             // 当选择显示所有网格时，禁用网格选择下拉框
             cmbMeshes.IsEnabled = !_showAllMeshes;
             
+            ClearCache(); // 清空缓存，因为显示模式改变了
             DisplayUV();
         }
 
         private void OnBackgroundChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateBackground();
+            ClearCache(); // 清空缓存，因为背景改变了
             DisplayUV();
         }
 
         private void OnShowWireframeChanged(object sender, RoutedEventArgs e)
         {
             _showWireframe = chkShowWireframe.IsChecked ?? false;
+            ClearCache(); // 清空缓存，因为线框显示设置改变了
             DisplayUV();
         }
 
@@ -200,13 +229,37 @@ namespace AseTest
 
         private void DisplayUV()
         {
-            uvCanvas.Children.Clear();
-
             if (_scene == null || cmbUVChannels.SelectedIndex < 0)
+            {
+                uvCanvas.Children.Clear();
                 return;
+            }
 
             try
             {
+                // 生成当前设置的缓存键
+                string newCacheKey = GenerateCacheKey();
+                
+                // 检查是否可以使用缓存
+                if (_cachedUVCanvas != null && _currentCacheKey == newCacheKey)
+                {
+                    // 使用缓存的画布
+                    uvCanvas.Children.Clear();
+                    var clonedCanvas = CloneCanvas(_cachedUVCanvas);
+                    
+                    // 将克隆的元素添加到当前画布
+                    foreach (UIElement child in clonedCanvas.Children)
+                    {
+                        uvCanvas.Children.Add(child);
+                    }
+                    
+                    txtUVInfo.Text += " (已缓存)";
+                    return;
+                }
+
+                // 清空当前画布
+                uvCanvas.Children.Clear();
+
                 int uvChannel = cmbUVChannels.SelectedIndex;
 
                 if (_showAllMeshes)
@@ -218,6 +271,14 @@ namespace AseTest
                 {
                     // 显示单个网格的UV
                     DisplaySingleMeshUV(uvChannel);
+                }
+
+                // 生成完成后，缓存当前画布（只对显示所有网格的情况进行缓存，因为这是最耗时的）
+                if (_showAllMeshes)
+                {
+                    _cachedUVCanvas = CloneCanvas(uvCanvas);
+                    _currentCacheKey = newCacheKey;
+                    txtUVInfo.Text += " (已生成缓存)";
                 }
             }
             catch (Exception ex)
@@ -477,6 +538,72 @@ namespace AseTest
                 MessageBox.Show($"保存UV图失败: {ex.Message}", "错误", 
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private string GenerateCacheKey()
+        {
+            string backgroundTag = "White";
+            if (cmbBackground.SelectedItem is ComboBoxItem selectedItem)
+            {
+                backgroundTag = selectedItem.Tag?.ToString() ?? "White";
+            }
+
+            return $"UV{cmbUVChannels.SelectedIndex}_" +
+                   $"AllMeshes{_showAllMeshes}_" +
+                   $"Mesh{cmbMeshes.SelectedIndex}_" +
+                   $"Wire{_showWireframe}_" +
+                   $"Bg{backgroundTag}";
+        }
+
+        private void ClearCache()
+        {
+            _cachedUVCanvas = null;
+            _currentCacheKey = "";
+        }
+
+        private Canvas CloneCanvas(Canvas original)
+        {
+            var clone = new Canvas
+            {
+                Width = original.Width,
+                Height = original.Height,
+                Background = original.Background
+            };
+
+            foreach (UIElement child in original.Children)
+            {
+                if (child is Ellipse ellipse)
+                {
+                    var clonedEllipse = new Ellipse
+                    {
+                        Width = ellipse.Width,
+                        Height = ellipse.Height,
+                        Fill = ellipse.Fill,
+                        Stroke = ellipse.Stroke,
+                        StrokeThickness = ellipse.StrokeThickness,
+                        Opacity = ellipse.Opacity
+                    };
+                    Canvas.SetLeft(clonedEllipse, Canvas.GetLeft(ellipse));
+                    Canvas.SetTop(clonedEllipse, Canvas.GetTop(ellipse));
+                    clone.Children.Add(clonedEllipse);
+                }
+                else if (child is Line line)
+                {
+                    var clonedLine = new Line
+                    {
+                        X1 = line.X1,
+                        Y1 = line.Y1,
+                        X2 = line.X2,
+                        Y2 = line.Y2,
+                        Stroke = line.Stroke,
+                        StrokeThickness = line.StrokeThickness,
+                        Opacity = line.Opacity
+                    };
+                    clone.Children.Add(clonedLine);
+                }
+            }
+
+            return clone;
         }
     }
 } 

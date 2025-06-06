@@ -12,28 +12,6 @@ namespace AssimpThumbnailProvider.Utilities
     {
         private readonly AssimpContext _context = new AssimpContext();
         
-        // 使用与RenderHelper相同的日志开关
-        private const bool ENABLE_FILE_LOGGING = true;
-        private static readonly string LogFilePath = Path.Combine(
-            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
-            "thumbnail_loader.log"
-        );
-
-        private static void LogToFile(string message)
-        {
-            if (!ENABLE_FILE_LOGGING) return;
-
-            try
-            {
-                string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
-                File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
-            }
-            catch
-            {
-                // 忽略日志写入错误
-            }
-        }
-
         static AssimpLoader()
         {
             try
@@ -41,12 +19,12 @@ namespace AssimpThumbnailProvider.Utilities
                 // 获取当前程序集所在目录
                 string assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string assemblyDir = Path.GetDirectoryName(assemblyLocation);
-                LogToFile($"程序集位置: {assemblyLocation}");
-                LogToFile($"程序集目录: {assemblyDir}");
+                Logger.LogToFile($"程序集位置: {assemblyLocation}", "AssimpLoader");
+                Logger.LogToFile($"程序集目录: {assemblyDir}", "AssimpLoader");
 
                 // 检查是否是64位进程
                 bool is64BitProcess = Environment.Is64BitProcess;
-                LogToFile($"是否64位进程: {is64BitProcess}");
+                Logger.LogToFile($"是否64位进程: {is64BitProcess}", "AssimpLoader");
 
                 // 获取基础目录（往上一级找到包含runtimes的目录）
                 string baseDir = assemblyDir;
@@ -54,11 +32,11 @@ namespace AssimpThumbnailProvider.Utilities
                 while (!string.IsNullOrEmpty(baseDir))
                 {
                     string testPath = Path.Combine(baseDir, "runtimes");
-                    LogToFile($"检查runtimes目录: {testPath}");
+                    Logger.LogToFile($"检查runtimes目录: {testPath}", "AssimpLoader");
                     if (Directory.Exists(testPath))
                     {
                         runtimesPath = testPath;
-                        LogToFile($"找到runtimes目录: {runtimesPath}");
+                        Logger.LogToFile($"找到runtimes目录: {runtimesPath}", "AssimpLoader");
                         break;
                     }
                     baseDir = Path.GetDirectoryName(baseDir);
@@ -91,44 +69,44 @@ namespace AssimpThumbnailProvider.Utilities
                 bool dllLoaded = false;
                 foreach (var path in possiblePaths)
                 {
-                    LogToFile($"检查DLL路径: {path}");
+                    Logger.LogToFile($"检查DLL路径: {path}", "AssimpLoader");
                     bool exists = File.Exists(path);
-                    LogToFile($"文件存在: {exists}");
+                    Logger.LogToFile($"文件存在: {exists}", "AssimpLoader");
 
                     if (exists)
                     {
                         try
                         {
-                            LogToFile($"尝试加载DLL: {path}");
+                            Logger.LogToFile($"尝试加载DLL: {path}", "AssimpLoader");
                             IntPtr handle = LoadLibrary(path);
                             if (handle != IntPtr.Zero)
                             {
-                                LogToFile($"DLL加载成功: {path}");
+                                Logger.LogToFile($"DLL加载成功: {path}", "AssimpLoader");
                                 dllLoaded = true;
                                 break;
                             }
                             else
                             {
                                 int error = Marshal.GetLastWin32Error();
-                                LogToFile($"DLL加载失败，错误代码: {error}");
+                                Logger.LogToFile($"DLL加载失败，错误代码: {error}", "AssimpLoader");
                             }
                         }
                         catch (Exception ex)
                         {
-                            LogToFile($"加载DLL时出错: {ex.Message}");
+                            Logger.LogToFile($"加载DLL时出错: {ex.Message}", "AssimpLoader");
                         }
                     }
                 }
 
                 if (!dllLoaded)
                 {
-                    LogToFile("警告: 未能成功加载assimp.dll");
+                    Logger.LogToFile("警告: 未能成功加载assimp.dll", "AssimpLoader");
                 }
             }
             catch (Exception ex)
             {
-                LogToFile($"初始化时出错: {ex.Message}");
-                LogToFile($"错误堆栈: {ex.StackTrace}");
+                Logger.LogToFile($"初始化时出错: {ex.Message}", "AssimpLoader");
+                Logger.LogToFile($"错误堆栈: {ex.StackTrace}", "AssimpLoader");
             }
         }
 
@@ -137,63 +115,63 @@ namespace AssimpThumbnailProvider.Utilities
 
         public List<MeshData> Load(string filePath)
         {
-            LogToFile($"开始加载文件: {filePath}");
+            Logger.LogToFile($"开始加载文件: {filePath}", "AssimpLoader");
             
             try
             {
                 var fileInfo = new FileInfo(filePath);
-                LogToFile($"文件大小: {fileInfo.Length / 1024} KB");
-                LogToFile($"文件最后修改时间: {fileInfo.LastWriteTime}");
+                Logger.LogToFile($"文件大小: {fileInfo.Length / 1024} KB", "AssimpLoader");
+                Logger.LogToFile($"文件最后修改时间: {fileInfo.LastWriteTime}", "AssimpLoader");
                 
                 // 根据文件扩展名设置特定的导入选项
                 var extension = Path.GetExtension(filePath)?.ToLower();
                 var importFlags = GetImportFlagsForFormat(extension);
                 
-                LogToFile($"文件扩展名: {extension}");
-                LogToFile($"使用导入标志: {importFlags}");
+                Logger.LogToFile($"文件扩展名: {extension}", "AssimpLoader");
+                Logger.LogToFile($"使用导入标志: {importFlags}", "AssimpLoader");
 
                 var scene = _context.ImportFile(filePath, importFlags);
                 
                 if (scene == null)
                 {
-                    LogToFile("场景加载失败，返回默认立方体");
+                    Logger.LogToFile("场景加载失败，返回默认立方体", "AssimpLoader");
                     return new List<MeshData> { CreateDefaultCube() };
                 }
 
-                LogToFile($"场景加载成功:");
-                LogToFile($"- 网格数量: {scene.MeshCount}");
-                LogToFile($"- 材质数量: {scene.MaterialCount}");
-                LogToFile($"- 动画数量: {scene.AnimationCount}");
-                LogToFile($"- 纹理数量: {scene.TextureCount}");
+                Logger.LogToFile($"场景加载成功:", "AssimpLoader");
+                Logger.LogToFile($"- 网格数量: {scene.MeshCount}", "AssimpLoader");
+                Logger.LogToFile($"- 材质数量: {scene.MaterialCount}", "AssimpLoader");
+                Logger.LogToFile($"- 动画数量: {scene.AnimationCount}", "AssimpLoader");
+                Logger.LogToFile($"- 纹理数量: {scene.TextureCount}", "AssimpLoader");
                 
                 if (scene.MeshCount == 0)
                 {
-                    LogToFile("警告: 场景中没有网格，返回默认立方体");
+                    Logger.LogToFile("警告: 场景中没有网格，返回默认立方体", "AssimpLoader");
                     return new List<MeshData> { CreateDefaultCube() };
                 }
 
                 var meshes = new List<MeshData>();
                 foreach (var mesh in scene.Meshes)
                 {
-                    LogToFile($"处理网格: {mesh.Name}");
-                    LogToFile($"- 顶点数量: {mesh.VertexCount}");
-                    LogToFile($"- 面数量: {mesh.FaceCount}");
-                    LogToFile($"- 是否有法线: {mesh.HasNormals}");
-                    LogToFile($"- 是否有纹理坐标: {mesh.HasTextureCoords(0)}");
+                    Logger.LogToFile($"处理网格: {mesh.Name}", "AssimpLoader");
+                    Logger.LogToFile($"- 顶点数量: {mesh.VertexCount}", "AssimpLoader");
+                    Logger.LogToFile($"- 面数量: {mesh.FaceCount}", "AssimpLoader");
+                    Logger.LogToFile($"- 是否有法线: {mesh.HasNormals}", "AssimpLoader");
+                    Logger.LogToFile($"- 是否有纹理坐标: {mesh.HasTextureCoords(0)}", "AssimpLoader");
                     
                     if (mesh.VertexCount == 0 || mesh.FaceCount == 0)
                     {
-                        LogToFile("警告: 跳过空网格");
+                        Logger.LogToFile("警告: 跳过空网格", "AssimpLoader");
                         continue;
                     }
                     
                     var data = new MeshData(mesh);
                     
-                    LogToFile($"转换后的网格数据:");
-                    LogToFile($"- 顶点数量: {data.Vertices.Count/3}");
-                    LogToFile($"- 法线数量: {data.Normals.Count/3}");
-                    LogToFile($"- UV数量: {data.UVs.Count/2}");
-                    LogToFile($"- 索引数量: {data.Indices.Count}");
+                    Logger.LogToFile($"转换后的网格数据:", "AssimpLoader");
+                    Logger.LogToFile($"- 顶点数量: {data.Vertices.Count/3}", "AssimpLoader");
+                    Logger.LogToFile($"- 法线数量: {data.Normals.Count/3}", "AssimpLoader");
+                    Logger.LogToFile($"- UV数量: {data.UVs.Count/2}", "AssimpLoader");
+                    Logger.LogToFile($"- 索引数量: {data.Indices.Count}", "AssimpLoader");
                     
                     // 规范化网格大小
                     NormalizeMeshSize(data);
@@ -203,17 +181,17 @@ namespace AssimpThumbnailProvider.Utilities
                 
                 if (meshes.Count == 0)
                 {
-                    LogToFile("警告: 所有网格都是空的或无效的，返回默认立方体");
+                    Logger.LogToFile("警告: 所有网格都是空的或无效的，返回默认立方体", "AssimpLoader");
                     return new List<MeshData> { CreateDefaultCube() };
                 }
                 
-                LogToFile($"成功加载了 {meshes.Count} 个有效网格");
+                Logger.LogToFile($"成功加载了 {meshes.Count} 个有效网格", "AssimpLoader");
                 return meshes;
             }
             catch (Exception ex)
             {
-                LogToFile($"加载模型时出错: {ex.Message}");
-                LogToFile($"错误堆栈: {ex.StackTrace}");
+                Logger.LogToFile($"加载模型时出错: {ex.Message}", "AssimpLoader");
+                Logger.LogToFile($"错误堆栈: {ex.StackTrace}", "AssimpLoader");
                 
                 // 返回一个默认几何体便于调试
                 return new List<MeshData> { CreateDefaultCube() };

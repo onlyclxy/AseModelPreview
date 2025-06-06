@@ -72,6 +72,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Thumbnail\AssimpThumbnailProvider.cs" />
     <Compile Include="Utilities\AssimpLoader.cs" />
+    <Compile Include="Utilities\Logger.cs" />
     <Compile Include="Utilities\RenderHelper.cs" />
     <Compile Include="Utilities\SpecialFileRenderer.cs" />
     <Compile Include="DmlPath\DmlParser.cs" />
@@ -83,6 +84,15 @@
     <None Include="AssimpThumbnailProvider.snk">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Microsoft.WindowsAPICodePack.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Microsoft.WindowsAPICodePack.Shell.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SetProjectPath.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="卸载.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

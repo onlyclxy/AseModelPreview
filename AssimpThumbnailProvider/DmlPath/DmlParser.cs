@@ -2,29 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using AssimpThumbnailProvider.Utilities;
 
 namespace AssimpThumbnailProvider.DmlPath
 {
     public class DmlParser
     {
-        private static readonly string LogFilePath = Path.Combine(
-            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
-            "dml_parser.log"
-        );
-
-        private static void LogToFile(string message)
-        {
-            try
-            {
-                string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
-                File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
-            }
-            catch
-            {
-                // 忽略日志写入错误
-            }
-        }
-
         /// <summary>
         /// 解析DML文件并获取指定节下的第一行内容
         /// </summary>
@@ -36,13 +19,13 @@ namespace AssimpThumbnailProvider.DmlPath
             
             if (!File.Exists(dmlFilePath))
             {
-                LogToFile($"DML文件不存在: {dmlFilePath}");
+                Logger.LogToFile($"DML文件不存在: {dmlFilePath}", "DmlParser");
                 return paths;
             }
 
             try
             {
-                LogToFile($"开始解析DML文件: {dmlFilePath}");
+                Logger.LogToFile($"开始解析DML文件: {dmlFilePath}", "DmlParser");
                 string[] lines = File.ReadAllLines(dmlFilePath);
                 bool inTargetSection = false;
                 bool foundFirstLine = false;
@@ -60,7 +43,7 @@ namespace AssimpThumbnailProvider.DmlPath
                         inTargetSection = currentSection.Equals("[GEOMETRY MESH]", StringComparison.OrdinalIgnoreCase) ||
                                         currentSection.Equals("[SKIN]", StringComparison.OrdinalIgnoreCase);
                         foundFirstLine = false; // 重置标记
-                        LogToFile($"进入节: {currentSection}, 是否为目标节: {inTargetSection}");
+                        Logger.LogToFile($"进入节: {currentSection}, 是否为目标节: {inTargetSection}", "DmlParser");
                         continue;
                     }
 
@@ -74,17 +57,17 @@ namespace AssimpThumbnailProvider.DmlPath
                             if (!string.IsNullOrEmpty(resolvedPath))
                             {
                                 paths.Add(resolvedPath);
-                                LogToFile($"找到文件路径: {resolvedPath}");
+                                Logger.LogToFile($"找到文件路径: {resolvedPath}", "DmlParser");
                             }
                             foundFirstLine = true; // 标记已找到第一行
                         }
                     }
                 }
-                LogToFile($"DML文件解析完成，共找到 {paths.Count} 个文件路径");
+                Logger.LogToFile($"DML文件解析完成，共找到 {paths.Count} 个文件路径", "DmlParser");
             }
             catch (Exception ex)
             {
-                LogToFile($"解析DML文件失败: {ex.Message}");
+                Logger.LogToFile($"解析DML文件失败: {ex.Message}", "DmlParser");
             }
 
             return paths;
@@ -100,44 +83,44 @@ namespace AssimpThumbnailProvider.DmlPath
             if (string.IsNullOrEmpty(filePath))
                 return "";
 
-            LogToFile($"开始解析文件路径: {filePath}");
+            Logger.LogToFile($"开始解析文件路径: {filePath}", "DmlParser");
             string fileName = Path.GetFileName(filePath);
             string projectDir = ConfigManager.GetProjectDirectory();
 
             // 1. 如果是相对路径，先尝试基于工程目录解析
             if (filePath.Contains("..") || filePath.StartsWith("."))
             {
-                LogToFile($"检测到相对路径: {filePath}");
+                Logger.LogToFile($"检测到相对路径: {filePath}", "DmlParser");
                 if (!string.IsNullOrEmpty(projectDir))
                 {
                     string fullPath = TryResolveRelativePath(filePath, projectDir);
                     if (!string.IsNullOrEmpty(fullPath))
                     {
-                        LogToFile($"相对路径解析成功: {fullPath}");
+                        Logger.LogToFile($"相对路径解析成功: {fullPath}", "DmlParser");
                         return fullPath;
                     }
                 }
 
                 // 如果基于工程目录解析失败，尝试搜索
-                LogToFile($"相对路径解析失败，尝试Everything搜索文件: {fileName}");
+                Logger.LogToFile($"相对路径解析失败，尝试Everything搜索文件: {fileName}", "DmlParser");
                 return SearchFile(fileName);
             }
             // 2. 如果是单个文件名（孤立文件）
             else if (!string.IsNullOrEmpty(fileName) && fileName.Equals(filePath))
             {
-                LogToFile($"检测到单个文件名: {fileName}");
+                Logger.LogToFile($"检测到单个文件名: {fileName}", "DmlParser");
                 return SearchFile(fileName);
             }
             // 3. 如果是绝对路径
             else if (File.Exists(filePath))
             {
-                LogToFile($"绝对路径存在: {filePath}");
+                Logger.LogToFile($"绝对路径存在: {filePath}", "DmlParser");
                 return filePath;
             }
             // 4. 其他情况，尝试搜索
             else
             {
-                LogToFile($"其他情况，尝试搜索文件: {fileName}");
+                Logger.LogToFile($"其他情况，尝试搜索文件: {fileName}", "DmlParser");
                 return SearchFile(fileName);
             }
         }
@@ -149,7 +132,7 @@ namespace AssimpThumbnailProvider.DmlPath
         {
             try
             {
-                LogToFile($"尝试解析相对路径: {relativePath}, 基础路径: {basePath}");
+                Logger.LogToFile($"尝试解析相对路径: {relativePath}, 基础路径: {basePath}", "DmlParser");
                 // 移除开头的..\或./
                 string cleanPath = relativePath;
                 while (cleanPath.StartsWith("..\\") || cleanPath.StartsWith("../"))
@@ -167,17 +150,17 @@ namespace AssimpThumbnailProvider.DmlPath
 
                 if (File.Exists(fullPath))
                 {
-                    LogToFile($"相对路径解析成功: {fullPath}");
+                    Logger.LogToFile($"相对路径解析成功: {fullPath}", "DmlParser");
                     return fullPath;
                 }
                 else
                 {
-                    LogToFile($"相对路径解析后文件不存在: {fullPath}");
+                    Logger.LogToFile($"相对路径解析后文件不存在: {fullPath}", "DmlParser");
                 }
             }
             catch (Exception ex)
             {
-                LogToFile($"路径解析失败: {ex.Message}");
+                Logger.LogToFile($"路径解析失败: {ex.Message}", "DmlParser");
             }
             return "";
         }
@@ -193,25 +176,25 @@ namespace AssimpThumbnailProvider.DmlPath
             // 1. 如果有工程目录，先在工程目录中搜索
             if (!string.IsNullOrEmpty(projectDir))
             {
-                LogToFile($"在工程目录中搜索: {fileName}");
+                Logger.LogToFile($"在工程目录中搜索: {fileName}", "DmlParser");
                 foundPath = EverythingApi.SearchFile(fileName, projectDir);
                 if (!string.IsNullOrEmpty(foundPath))
                 {
-                    LogToFile($"在工程目录中找到文件: {foundPath}");
+                    Logger.LogToFile($"在工程目录中找到文件: {foundPath}", "DmlParser");
                     return foundPath;
                 }
             }
 
             // 2. 在所有磁盘中搜索
-            LogToFile($"在全盘搜索: {fileName}");
+            Logger.LogToFile($"在全盘搜索: {fileName}", "DmlParser");
             foundPath = EverythingApi.SearchFile(fileName, "");
             if (!string.IsNullOrEmpty(foundPath))
             {
-                LogToFile($"在全盘中找到文件: {foundPath}");
+                Logger.LogToFile($"在全盘中找到文件: {foundPath}", "DmlParser");
                 return foundPath;
             }
 
-            LogToFile($"未找到文件: {fileName}");
+            Logger.LogToFile($"未找到文件: {fileName}", "DmlParser");
             return "";
         }
     }

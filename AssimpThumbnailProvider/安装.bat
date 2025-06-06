@@ -3,6 +3,9 @@
 echo 正在解除文件未知来源状态（Zone.Identifier）...
 powershell -command "Get-ChildItem -Recurse -Path '%~dp0' | Unblock-File -ErrorAction SilentlyContinue"
 
+RemoveRead.exe
+SetProjectPath.exe
+
 echo 正在注册 AssimpThumbnailProvider 缩略图处理器...
 
 REM 检查管理员权限

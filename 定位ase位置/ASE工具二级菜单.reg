@@ -1,0 +1,43 @@
+Windows Registry Editor Version 5.00
+
+; 清理旧的注册项
+[-HKEY_CLASSES_ROOT\dml.1\shell\LocateASE]
+[-HKEY_CLASSES_ROOT\3dsmat\shell\LocateASE]
+[-HKEY_CLASSES_ROOT\dmlfile\shell\LocateASE]
+[-HKEY_CLASSES_ROOT\matfile\shell\LocateASE]
+[-HKEY_CLASSES_ROOT\dml.1\shell\ASETools]
+[-HKEY_CLASSES_ROOT\3dsmat\shell\ASETools]
+[-HKEY_CLASSES_ROOT\SystemFileAssociations\.dml\shell\ase工具]
+[-HKEY_CLASSES_ROOT\SystemFileAssociations\.mat\shell\ase工具]
+
+; 为 .dml 文件创建 ASE 工具二级菜单
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.dml\shell\ase工具]
+@="ASE 工具"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.dml\shell\ase工具\shell\定位ase文件]
+@="定位 ASE 文件"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.dml\shell\ase工具\shell\定位ase文件\command]
+@="\"C:\\Users\\Administrator\\OneDrive - whq116\\C#\\x52\\AseModelPreview\\定位ase位置\\ASELocator.exe\" \"locate\" \"%1\""
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.dml\shell\ase工具\shell\打开ase文件]
+@="打开 ASE 文件"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.dml\shell\ase工具\shell\打开ase文件\command]
+@="\"C:\\Users\\Administrator\\OneDrive - whq116\\C#\\x52\\AseModelPreview\\定位ase位置\\ASELocator.exe\" \"open\" \"%1\""
+
+; 为 .mat 文件创建 ASE 工具二级菜单
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.mat\shell\ase工具]
+@="ASE 工具"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.mat\shell\ase工具\shell\定位ase文件]
+@="定位 ASE 文件"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.mat\shell\ase工具\shell\定位ase文件\command]
+@="\"C:\\Users\\Administrator\\OneDrive - whq116\\C#\\x52\\AseModelPreview\\定位ase位置\\ASELocator.exe\" \"locate\" \"%1\""
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.mat\shell\ase工具\shell\打开ase文件]
+@="打开 ASE 文件"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.mat\shell\ase工具\shell\打开ase文件\command]
+@="\"C:\\Users\\Administrator\\OneDrive - whq116\\C#\\x52\\AseModelPreview\\定位ase位置\\ASELocator.exe\" \"open\" \"%1\"" 
